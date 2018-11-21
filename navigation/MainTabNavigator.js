@@ -3,38 +3,38 @@ import { Platform } from 'react-native';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 
 import TabBarIcon from '../components/TabBarIcon';
-import HomeScreen from '../screens/HomeScreen';
-import LinksScreen from '../screens/LinksScreen';
+import TimerScreen from '../screens/TimerScreen';
+import WorkoutScreen from '../screens/WorkoutScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
-const HomeStack = createStackNavigator({
-  Home: HomeScreen,
+const TimerStack = createStackNavigator({
+  Timer: TimerScreen,
 });
 
-HomeStack.navigationOptions = {
+TimerStack.navigationOptions = {
   tabBarLabel: 'Timer',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
       name={
         Platform.OS === 'ios'
-          ? `ios-information-circle${focused ? '' : '-outline'}`
-          : 'md-information-circle'
+          ? `ios-clock`
+          : 'md-clock'
       }
     />
   ),
 };
 
-const LinksStack = createStackNavigator({
-  Links: LinksScreen,
+const WorkoutStack = createStackNavigator({
+  Workout: WorkoutScreen,
 });
 
-LinksStack.navigationOptions = {
+WorkoutStack.navigationOptions = {
   tabBarLabel: 'Workouts',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
-      name={Platform.OS === 'ios' ? 'ios-link' : 'md-link'}
+      name={Platform.OS === 'ios' ? 'ios-walk' : 'md-walk'}
     />
   ),
 };
@@ -54,7 +54,7 @@ SettingsStack.navigationOptions = {
 };
 
 export default createBottomTabNavigator({
-  HomeStack,
-  LinksStack,
+  TimerStack,
+  WorkoutStack,
   SettingsStack,
 });

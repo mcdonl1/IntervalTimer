@@ -9,7 +9,7 @@ export default class WorkoutScreen extends React.Component {
   render() {
     return (
       <ScrollView style={styles.container}>
-        <Text>This is where the workout selector screen will be</Text>
+        <Text>List of available workouts and best times</Text>
       </ScrollView>
     );
   }

@@ -8,164 +8,169 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { WebBrowser } from 'expo';
+import moment from 'moment';
 
-import { MonoText } from '../components/StyledText';
+//timer functional component
+function Timer({ interval }) {
+  const duration = moment.duration(interval);
+  //simple padding function for displayed numbers
+  const pad = (n) => {
+    return (n < 10) ? '0'+n : n;
+  }
+  let centiseconds = Math.floor(duration.milliseconds()/10);
+  return (
+    <Text style={styles.timer}>
+      {pad(duration.minutes())}:{pad(duration.seconds())}.{pad(centiseconds)}
+    </Text>
+  )
+}
+
+//round button functional component
+function RoundButton({title, color, background, onPress}) { 
+  return (
+    <TouchableOpacity 
+      onPress={onPress}
+      style={[styles.button, {backgroundColor: background}]}>
+      <View style={styles.buttonBorder}>
+        <Text style={[styles.buttonTitle, {color}]}>{title}</Text>
+      </View>
+    </TouchableOpacity>
+  )
+}
 
 export default class TimerScreen extends React.Component {
   static navigationOptions = {
     header: null,
   };
-
-  render() {
-    return (
-      <View style={styles.container}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          {/* <View style={styles.welcomeContainer}>
-            <Image
-              source={
-                __DEV__
-                  ? require('../assets/images/robot-dev.png')
-                  : require('../assets/images/robot-prod.png')
-              }
-              style={styles.welcomeImage}
-            />
-          </View> */}
-
-          <View style={styles.getStartedContainer}>
-            {this._maybeRenderDevelopmentModeWarning()}
-
-
-            <Text style={styles.getStartedText}>
-              This is where the timer will be
-            </Text>
-          </View>
-
-        </ScrollView>
-
-      </View>
-    );
-  }
-
-  _maybeRenderDevelopmentModeWarning() {
-    if (__DEV__) {
-      const learnMoreButton = (
-        <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
-          Learn more
-        </Text>
-      );
-
-      // return (
-      //   <Text style={styles.developmentModeText}>
-      //     Development mode is enabled, your app will be slower but you can use useful development
-      //     tools. {learnMoreButton}
-      //   </Text>
-      // );
-    } else {
-      return (
-        <Text style={styles.developmentModeText}>
-          You are not in development mode, your app will run at full speed.
-        </Text>
-      );
+  constructor(props) { 
+    let intervalsArray = [10000,10000,10000,10000]
+    super(props);
+    //initialize state to start with first interval
+    this.state = {
+      start: 0,
+      now: 0,
+      intervals: intervalsArray,
+      index: 1,
+      prev: 0,
+      stopped: true,
+      currentInterval: intervalsArray[0],
+      stopResetText: '',
+      bgColor: '#fef9ed'
     }
   }
 
-  _handleLearnMorePress = () => {
-    WebBrowser.openBrowserAsync('https://docs.expo.io/versions/latest/guides/development-mode');
-  };
+  start = () => {
+    const now = new Date().getTime();
+    this.setState({
+      start: now - this.state.prev,
+      now,
+      index: 1,
+      stopped: false,
+      stopResetText: 'Stop',
+      bgColor: ((this.state.index)%2) ? '#00c100' : '#1b8cfe' 
+    });
+    this.timer = setInterval(() => {
+      const {start, currentInterval, index, intervals} = this.state;
+      let now = new Date().getTime();
+      let timer = currentInterval - (now - start);
+      if(timer > 0) {   //if timer isn't done, update it
+        this.setState({now: now})
+      } else if(index !== intervals.length) { //if timer is done and there are more intervals left, update to new interval
+        this.setState({
+          prev: 0,
+          now: now,
+          start: now,
+          currentInterval: intervals[index],
+          index: index + 1,
+          bgColor: ((index)%2) ? '#1b8cfe' : '#00c100'   
+        });
+      } else {                          //if timer is done and all intervals are finished, reset to initial state
+        clearInterval(this.timer);
+        this.setState({ 
+          start: 0,
+          now: 0,
+          index: 1,
+          prev: 0,
+          stopped: true,
+          currentInterval: intervals[0],
+          stopResetText: '',
+          bgColor: '#fef9ed'
+        })
+      }
+      }, 100);
+  }
+  stop = () => {
+    const {now, start, intervals, stopped} = this.state;
+    if(!stopped) {
+      clearInterval(this.timer);
+      this.setState({
+        stopped:true,
+        prev: now-start,
+        stopResetText: 'Reset',
+        bgColor: '#fef9ed'
+      })
+    } else {
+      this.setState({
+        prev: 0,
+        now: 0,
+        start: 0,
+        currentInterval: intervals[0],
+        index: 1,
+        stopResetText: ''
+      })
+    }
+  }
 
-  _handleHelpPress = () => {
-    WebBrowser.openBrowserAsync(
-      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
+  render() {
+    const {now, start, currentInterval, stopResetText, bgColor} = this.state;
+    const timer = currentInterval - (now-start);
+    return (
+      <View style={[styles.container,{backgroundColor: bgColor}]}>
+        <Timer interval={timer}></Timer>
+        <View style={styles.buttonsContainer}>
+          <RoundButton title="Start" color="#FFFFFF" background="#1B672F" onPress={this.start} ></RoundButton>
+          <RoundButton title={stopResetText} color="#ffffff" background={stopResetText === '' ? "#8b8b8b" : "#a60000"} onPress={this.stop} ></RoundButton>
+        </View>
+      </View>
     );
-  };
+  }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
-    fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
-  },
-  contentContainer: {
-    paddingTop: 30,
-  },
-  welcomeContainer: {
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
+    paddingTop: 130,
+    paddingHorizontal: 20
   },
-  welcomeImage: {
-    width: 100,
+  timer: {
+    fontWeight: '200',
+    fontSize: 80,
+    fontFamily: 'Menlo'
+  },
+  button: {
+    width: 80,
     height: 80,
-    resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
-  },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
+    borderRadius: 40,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  helpLink: {
-    paddingVertical: 15,
+  buttonTitle: {
+    fontSize: 22
   },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
+  buttonBorder: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
+  buttonsContainer: {
+    flexDirection: 'row',
+    alignSelf: 'stretch',
+    justifyContent: 'space-between',
+    marginTop: 50,
+    paddingHorizontal: 50
+  }
 });

@@ -55,59 +55,65 @@ export default class TimerScreen extends React.Component {
       stopped: true,
       currentInterval: intervalsArray[0],
       stopResetText: '',
-      bgColor: '#fef9ed'
+      bgColor: '#fef9ed',
+      started: false
     }
   }
 
   start = () => {
-    const now = new Date().getTime();
-    this.setState({
-      start: now - this.state.prev,
-      now,
-      index: 1,
-      stopped: false,
-      stopResetText: 'Stop',
-      bgColor: ((this.state.index)%2) ? '#00c100' : '#1b8cfe' 
-    });
-    this.timer = setInterval(() => {
-      const {start, currentInterval, index, intervals} = this.state;
-      let now = new Date().getTime();
-      let timer = currentInterval - (now - start);
-      if(timer > 0) {   //if timer isn't done, update it
-        this.setState({now: now})
-      } else if(index !== intervals.length) { //if timer is done and there are more intervals left, update to new interval
-        this.setState({
-          prev: 0,
-          now: now,
-          start: now,
-          currentInterval: intervals[index],
-          index: index + 1,
-          bgColor: ((index)%2) ? '#1b8cfe' : '#00c100'   
-        });
-      } else {                          //if timer is done and all intervals are finished, reset to initial state
-        clearInterval(this.timer);
-        this.setState({ 
-          start: 0,
-          now: 0,
-          index: 1,
-          prev: 0,
-          stopped: true,
-          currentInterval: intervals[0],
-          stopResetText: '',
-          bgColor: '#fef9ed'
-        })
-      }
+    if(!this.state.started) {  //handle multiple start presses
+      const now = new Date().getTime();
+      this.setState({
+        start: now - this.state.prev,
+        now,
+        index: 1,
+        stopped: false,
+        stopResetText: 'Stop',
+        bgColor: ((this.state.index)%2) ? '#57b766' : '#1b8cfe',
+        started: true
+      });
+      this.timer = setInterval(() => {
+        const {start, currentInterval, index, intervals} = this.state;
+        let now = new Date().getTime();
+        let timer = currentInterval - (now - start);
+        if(timer > 0) {   //if timer isn't done, update it
+          this.setState({now: now})
+        } else if(index !== intervals.length) { //if timer is done and there are more intervals left, update to new interval
+          this.setState({
+            prev: 0,
+            now: now,
+            start: now,
+            currentInterval: intervals[index],
+            index: index + 1,
+            bgColor: ((index)%2) ? '#1b8cfe' : '#57b766'   
+          });
+        } else {                          //if timer is done and all intervals are finished, reset to initial state
+          clearInterval(this.timer);
+          this.setState({ 
+            start: 0,
+            now: 0,
+            index: 1,
+            prev: 0,
+            stopped: true,
+            currentInterval: intervals[0],
+            stopResetText: '',
+            bgColor: '#fef9ed',
+            started: false
+          })
+        }
       }, 100);
+    }
   }
   stop = () => {
     const {now, start, intervals, stopped} = this.state;
+    clearInterval(this.timer);
     if(!stopped) {
-      clearInterval(this.timer);
       this.setState({
         stopped:true,
         prev: now-start,
         stopResetText: 'Reset',
-        bgColor: '#fef9ed'
+        bgColor: '#fef9ed',
+        started: false
       })
     } else {
       this.setState({
@@ -116,7 +122,7 @@ export default class TimerScreen extends React.Component {
         start: 0,
         currentInterval: intervals[0],
         index: 1,
-        stopResetText: ''
+        stopResetText: '',
       })
     }
   }
